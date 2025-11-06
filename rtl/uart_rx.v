@@ -56,7 +56,12 @@ always @(posedge clk) begin
             end
             DONE: begin
                 counter <= 0;
-                current_state <= IDLE;
+                if(incoming_data == 1'b0) begin
+                    current_state <= RECEIVING;
+                end
+                else begin
+                    current_state <= IDLE;
+                end
             end
         endcase
     end 

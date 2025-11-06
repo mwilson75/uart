@@ -37,6 +37,14 @@ initial begin
     #10
     in = 1'b1;
     #10
+    in = 1'b0;
+    #2
+    in = 1'b1;
+    #18
+    in = 1'b0;
+    #14
+    in = 1'b1;
+    #12
 end
 
 
