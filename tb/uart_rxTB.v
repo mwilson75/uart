@@ -1,7 +1,7 @@
 module uart_rxTB();
-
+localparam DATA_BITS = 8;
 reg clk = 1'b0, reset = 1'b1, in = 1'b1;
-
+reg[DATA_BITS-1:0] data;
 always #1 clk = ~clk;
 
 
@@ -10,7 +10,7 @@ uart_rx uut
     .clk(clk),
     .reset(reset),
     .incoming_data(in),
-    .data()
+    .data(data)
 );
 
 initial begin

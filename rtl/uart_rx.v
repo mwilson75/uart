@@ -11,13 +11,13 @@ module uart_rx #(parameter BAUD_RATE = 115200,
 localparam NUM_STATES = 5;
 localparam IDLE = 0, RECEIVING = 1, STOPPING = 2, OUT_OF_SYNC = 3, DONE = 4;
 reg [$clog2(NUM_STATES)-1:0] current_state;
-//reg [DATA_BITS-1:0] r_data;
+reg [DATA_BITS-1:0] r_data;
 reg [$clog2(DATA_BITS):0] counter;
 always @(posedge clk) begin
     if (reset) begin
         current_state <= IDLE;
         counter <= 0;
-        //r_data <= 0;
+        r_data <= 0;
     end
     else begin
         case(current_state)
@@ -29,11 +29,11 @@ always @(posedge clk) begin
             end
             RECEIVING: begin
 
-                if(counter == DATA_BITS ) begin
+                if(counter == DATA_BITS - 1 ) begin
                     current_state <= STOPPING;
                     
                 end
-                //r_data <= {incoming_data,r_data[DATA_BITS-1:1]};
+                r_data <= {incoming_data,r_data[DATA_BITS-1:1]};
                 counter <= counter + 1;
             end
             STOPPING: begin
@@ -62,5 +62,5 @@ always @(posedge clk) begin
     end 
 end
 
-assign data = 0;//(current_state == STOPPING) ? 
+assign data = (current_state == DONE) ? r_data : 0;
 endmodule
