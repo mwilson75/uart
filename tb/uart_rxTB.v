@@ -14,7 +14,7 @@ uart_rx uut
 );
 
 initial begin
-    #4
+   #4
     reset = 1'b0;
     #10
     in = 1'b0;
@@ -42,7 +42,11 @@ initial begin
     in = 1'b1;
     #18
     in = 1'b0;
-    #14
+    #2
+    in = 1'b1;
+  	#2
+    in = 1'b0;
+    #12
     in = 1'b1;
     #12
 end
