@@ -22,11 +22,11 @@ initial begin
     reset = 1'b0;
   # (CLK_PER_BIT << 2);
     in = 1'b0;
-  # (CLK_PER_BIT*2);
+  # (CLK_PER_BIT << 1);
   	in = 1'b1;
-  #(CLK_PER_BIT*2); 
+  #(CLK_PER_BIT << 1); 
   	in = 1'b0;
-  #(CLK_PER_BIT*2);
+  #(CLK_PER_BIT << 1);
   	in = 1'b1;
   #(CLK_PER_BIT << 5)
   /*
