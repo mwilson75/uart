@@ -14,6 +14,7 @@ localparam CLK_PER_BIT = CLK_RATE / BAUD_RATE;
 localparam NUM_STATES = 5;
 localparam IDLE = 0, STARTING = 4, SENDING = 1, STOPPING = 2, DONE = 3;
 
+reg [DATA_BITS-1:0] r_data_to_send;
 reg [$clog2(NUM_STATES)-1:0] current_state = IDLE;
 reg [$clog2(DATA_BITS):0] bit_count = 1'b0;
 reg r_data_bit;
@@ -33,6 +34,7 @@ assign clk_counter_en = (current_state == STARTING) | (current_state == SENDING)
 always @(posedge clk) begin
     case(current_state)
         IDLE: begin
+            r_data_to_send <= outgoing_data;
             r_data_bit <= 1'b1;
             if(enable) begin
                 current_state <= STARTING;
@@ -50,7 +52,7 @@ always @(posedge clk) begin
                 bit_count <= 1'b0;
             end
             else begin
-                r_data_bit <= outgoing_data[bit_count];
+                r_data_bit <= r_data_to_send[bit_count];
                 if(baud_clock) begin
                     bit_count <= bit_count + 1;
                 end
