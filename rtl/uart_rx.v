@@ -32,7 +32,7 @@ clock_counter #(.COUNT_LIMIT(CLK_PER_BIT)) inst
 ( 
     .clk(clk),
     .enable(full_period_en),
-    .count_reached(full_toggle_out)
+    .new_clk(full_toggle_out)
 );
 
 assign full_period_en = (current_state == RECEIVING) | (current_state == STOPPING);
@@ -40,7 +40,7 @@ clock_counter #(.COUNT_LIMIT(CLK_PER_BIT>>1)) half_inst
 (
     .clk(clk),
     .enable(half_period_en),
-    .count_reached(half_toggle_out)
+    .new_clk(half_toggle_out)
 );
 
 assign half_period_en = current_state == HALF_BAUD_WAIT;
