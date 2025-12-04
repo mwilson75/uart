@@ -62,6 +62,7 @@ always @(posedge clk) begin
         STOPPING:begin
             if(bit_count == STOP_BITS) begin
                 current_state <= DONE;
+                bit_count <= 1'b0;
             end
             r_data_bit <= 1'b1;
             if(baud_clock) begin
