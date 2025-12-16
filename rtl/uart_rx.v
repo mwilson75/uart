@@ -14,7 +14,7 @@ localparam CLK_PER_BIT = CLK_RATE / BAUD_RATE;
 localparam NUM_STATES = 7;
 localparam IDLE = 0, HALF_BAUD_WAIT = 5, ADD_PARITY_BIT = 6, RECEIVING = 1, STOPPING = 2, OUT_OF_SYNC = 3, DONE = 4;
 localparam NUM_PARITY_BIT = 1;
-wire parity_state = PARITY;
+wire [1:0] parity_state = PARITY;
 wire expected_parity;
 localparam NO_PARITY = 0, ODD_PARITY = 1, EVEN_PARITY = 2;
 wire full_toggle_out,full_period_en, new_bit,data_neg_edge,half_period_en,half_toggle_out;
@@ -49,7 +49,7 @@ clock_counter #(.COUNT_LIMIT(CLK_PER_BIT>>1)) half_inst
     .enable(half_period_en),
     .new_clk(half_toggle_out)
 );
-assign expected_parity = !(^ r_data);
+assign expected_parity = (PARITY == NO_PARITY) ? 0 : (PARITY == ODD_PARITY) ? !(^ r_data) : ^r_data;
 assign half_period_en = current_state == HALF_BAUD_WAIT;
 always @(posedge clk) begin
     if (reset) begin
