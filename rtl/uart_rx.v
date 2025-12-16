@@ -1,7 +1,8 @@
 module uart_rx #(parameter BAUD_RATE = 115200,
                  parameter DATA_BITS = 8,
                  parameter STOP_BITS = 1,
-                 parameter CLK_RATE = 25000000)
+                 parameter CLK_RATE = 25000000,
+                 parameter PARITY = 0)
 (
     input clk,
     input reset,
@@ -10,11 +11,17 @@ module uart_rx #(parameter BAUD_RATE = 115200,
     output [DATA_BITS-1:0] data
 );
 localparam CLK_PER_BIT = CLK_RATE / BAUD_RATE;
-localparam NUM_STATES = 6;
-localparam IDLE = 0, HALF_BAUD_WAIT = 5, RECEIVING = 1, STOPPING = 2, OUT_OF_SYNC = 3, DONE = 4;
+localparam NUM_STATES = 7;
+localparam IDLE = 0, HALF_BAUD_WAIT = 5, ADD_PARITY_BIT = 6, RECEIVING = 1, STOPPING = 2, OUT_OF_SYNC = 3, DONE = 4;
+localparam NUM_PARITY_BIT = 1;
+wire parity_state = PARITY;
+wire expected_parity;
+localparam NO_PARITY = 0, ODD_PARITY = 1, EVEN_PARITY = 2;
 wire full_toggle_out,full_period_en, new_bit,data_neg_edge,half_period_en,half_toggle_out;
 reg[2:0] r_new_bit;
 reg [$clog2(NUM_STATES)-1:0] current_state;
+
+
 reg [DATA_BITS-1:0] r_data;
 reg [$clog2(DATA_BITS):0] bit_counter;
 
@@ -35,14 +42,14 @@ clock_counter #(.COUNT_LIMIT(CLK_PER_BIT)) inst
     .new_clk(full_toggle_out)
 );
 
-assign full_period_en = (current_state == RECEIVING) | (current_state == STOPPING);
+assign full_period_en = (current_state == RECEIVING) | (current_state == STOPPING) | (current_state == ADD_PARITY_BIT);
 clock_counter #(.COUNT_LIMIT(CLK_PER_BIT>>1)) half_inst
 (
     .clk(clk),
     .enable(half_period_en),
     .new_clk(half_toggle_out)
 );
-
+assign expected_parity = !(^ r_data);
 assign half_period_en = current_state == HALF_BAUD_WAIT;
 always @(posedge clk) begin
     if (reset) begin
@@ -66,11 +73,30 @@ always @(posedge clk) begin
             RECEIVING: begin
 
                 if(bit_counter == DATA_BITS) begin
-                    current_state <= STOPPING;
+                    if(parity_state != NO_PARITY) begin
+                       current_state <= ADD_PARITY_BIT; 
+                    end
+                    else begin
+                        current_state <= STOPPING;
+                    end
                     bit_counter <= 0;
                 end
                 if(full_toggle_out) begin
                     r_data <= {new_bit,r_data[DATA_BITS-1:1]};
+                    bit_counter <= bit_counter + 1;
+                end
+            end
+            ADD_PARITY_BIT: begin
+                if(bit_counter == NUM_PARITY_BIT) begin
+                    if(new_bit == expected_parity) begin
+                        current_state <= STOPPING;
+                    end
+                    else begin
+                        current_state <= OUT_OF_SYNC;
+                    end
+                    bit_counter <= 0;
+                end 
+                if(full_toggle_out) begin
                     bit_counter <= bit_counter + 1;
                 end
             end
